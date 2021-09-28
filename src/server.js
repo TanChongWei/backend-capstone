@@ -5,7 +5,7 @@ const db = require('./db')
 require('dotenv').config()
 
 const authService = AuthService(db)
-const router = Router(authService)
+const router = Router(authService,db)
 const app = App(router)
 
 const PORT = process.env.PORT

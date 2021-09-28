@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
-const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS)
-const JWT_SECRET = process.env.JWT_SECRET
-const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY)
-
 module.exports = (db) => {
+  const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS)
+  const JWT_SECRET = process.env.JWT_SECRET
+  const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY)
   const service = {}
 
   service.generateJSONToken = (uid) => {
@@ -13,13 +12,18 @@ module.exports = (db) => {
   }
 
   service.createUser = async (email, password) => {
-    const user = await db.findUserByEmail(email)
-    if (user) {
+    try {
+      const user = await db.findUserByEmail(email)
+      if (user) {
+        return null
+      } else {
+        // const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
+        // await db.insertUser(email, passwordHash)
+        return service.generateJSONToken(email)
+      }
+    } catch (e) {
+      console.log(e.message)
       return null
-    } else {
-      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
-      await db.insertUser(email, passwordHash)
-      return service.generateJSONToken(email)
     }
   }
 
@@ -30,6 +34,15 @@ module.exports = (db) => {
       return isValid ? service.generateJSONToken(email) : null
     }
     return null
+  }
+
+  service.verifyToken = async(token) => {
+    try {
+      return jwt.verify(token, JWT_SECRET)
+    } catch (e) {
+      console.log(e.message)
+      return null
+    }
   }
 
   return service

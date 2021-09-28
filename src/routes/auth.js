@@ -1,15 +1,20 @@
 const express = require('express')
 
-module.exports = (service) => {
+function authRouter(service) {
   const router = express.Router()
 
   router.post('/register',  async(req, res, next) => {
-    const {email, password} = req.body
-    const token = await service.createUser(email, password) 
-    if (token) {
-      res.send({token: token})
-    } else {
-      res.status(400).send(`Email ${email} already exists! Please use another email.`)
+    try {
+      const {email, password} = req.body
+      const token = await service.createUser(email, password) 
+      if (token) {
+        res.cookie('token', token).send({token: token})
+      } else {
+        res.status(400).send(`Email ${email} already exists! Please use another email.`)
+      }
+    } catch (e) {
+      console.log(e.message)
+      res.status(404).send(`${e.message}`)
     }
   })
   
@@ -25,3 +30,5 @@ module.exports = (service) => {
 
   return router
 }
+
+module.exports = authRouter
