@@ -17,8 +17,8 @@ module.exports = (db) => {
       if (user) {
         return null
       } else {
-        // const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
-        // await db.insertUser(email, passwordHash)
+        const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
+        await db.insertUser(email, passwordHash)
         return service.generateJSONToken(email)
       }
     } catch (e) {
