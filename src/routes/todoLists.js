@@ -39,7 +39,7 @@ module.exports = (db) => {
         listTasks.forEach(async(task) => {
           try {
             await db.addTodoListItem(todoList.list_id, task)
-          } catch {
+          } catch (e) {
             console.log(e)
           }
         })
