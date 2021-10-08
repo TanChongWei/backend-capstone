@@ -1,72 +1,108 @@
 const express = require('express')
 const TodoList = require('../schema/todolist')
 const TodoListTask = require('../schema/todoListTask')
-const { v4: uuidv4 } = require('uuid')
+const { SuccessResponse } = require('../schema/response')
+const { UserFacingError } = require('../schema/error')
 
 module.exports = (db) => {
   const router = express.Router()
 
   router
+  //done
     .get('/', async(req, res, next) => {
-      const {email} = req.email
-      const todoLists = await db.findListsByEmail(email)
-      res.send(todoLists)
-    })
-    .post('/', async(req, res, next) => {
       try {
-        const {email} = req.email 
-        const {listName, tasks} = req.body
-        const listTasks = tasks.map(task => {
-          return new TodoListTask(task)
+        const email = req.email
+        const todoListData = await db.findListsByEmail(email)
+        const todoLists = todoListData.map(list => {
+          const newList = new TodoList(list.list_name, list.author, ['tasks'])
+          newList.listId = list.list_id
+          return newList
         })
-        const todoListId = uuidv4()
-        const newList = new TodoList(todoListId, listName, email, listTasks)
-        await db.InsertTodoList(newList)
-        res.send(201).send(newList)
+
+        for (const list of todoLists) {
+          const tasks = await db.getTodoListTasks(list.listId)
+          list.listTasks = tasks.map(t => t.task)
+        }
+
+        res.status(200).send(new SuccessResponse(200, email, todoLists))
       } catch (e) {
-        console.log(e)
-        return e.message
+        res.status(500).send(new UserFacingError(500, e))
       }
     })
-    .get('/:id', async(req, res, next)=>{
-      const {id} = req.params
-      const foundList = await db.findListById(id)
-      if (foundList) {
-        res.status(201).send(foundList)
-      } else {
-        res.status(400).send('List not found')
+    //done
+    .post('/', async(req, res, next) => {
+      try {
+        const email = req.email 
+        const {listName, tasks} = req.body
+        const todoList = await db.InsertTodoList(new TodoList(listName, email, tasks))
+        const listTasks = tasks.map(task => new TodoListTask(task))
+        listTasks.forEach(async(task) => {
+          try {
+            await db.addTodoListItem(todoList.list_id, task)
+          } catch {
+            console.log(e)
+          }
+        })
+        res.status(201).send(new SuccessResponse(201, email, new TodoList(listName, email, listTasks)))
+      } catch (e) {
+        res.status(500).send(new UserFacingError(500, e))
+      }
+    })
+    .get('/:id', async(req, res, next) => {
+      try {
+        const {id} = req.params
+        const email = req.email
+        const foundList = await db.findListById(id, email)
+        if (foundList) {
+          res.status(201).send(new SuccessResponse(201, email, foundList))
+        } else {
+          res.status(200).send(new SuccessResponse(200, email, `No such list found for user : ${email}`))
+        }
+      } catch (e) {
+        res.status(500).send(new UserFacingError(500, e))
       }
     })
     .put('/:id', async(req, res,next) => {
-      const {id} = req.params
-      const {name} = req.body
       try {
-        const updatedList = await db.findListByIdAndUpdate(id, name)
-        res.status(200).send(updatedList)
+        const {id} = req.params
+        const email = req.email
+        const {name, tasks} = req.body
+        const updatedList = await db.findListByIdAndUpdate(id, email, name, tasks)
+        if (updatedList) {
+          res.status(200).send(new SuccessResponse(200, email, updatedList))
+        } else {
+          res.status(200).send(new SuccessResponse(200, email, `No such list found for user : ${email}`))
+        }
       } catch (e) {
-        res.status(400).send('List not found')
+        res.status(500).send(new UserFacingError(500, e))
       }
     })
     .delete('/:id', async(req, res, next) => {
-      const {id} = req.params
       try {
-        const deletedList = await db.findListByIdAndDelete(id)
-        res.status(201).send(deletedList)
+        const {id} = req.params
+        const email = req.email
+        const deletedList = await db.findListByIdAndDelete(id, email)
+        if (deletedList) {
+          res.status(201).send(new SuccessResponse(201, email, deletedList))
+        } else {
+          res.status(200).send(new SuccessResponse(200, email, `No such list found for user : ${email}`))
+        }
       } catch (e) {
-        res.status(400).send('List not found')
+        res.status(500).send(new UserFacingError(500, e))
       }
     })
-    .post('/:id/access', async(req, res, next) =>{
-      const {id} = req.params
-      const {emails} = req.body
-      try {
-        emails.forEach(email => {
-          db.allowEditAccess(id, email)
-        })
-      } catch (e) {
-        res.status(500).send('Unauthorized')
-      }
-    })
+    // .post('/:id/access', async(req, res, next) =>{
+    //   const {id} = req.params
+    //   const email = req.email
+    //   const {emails} = req.body
+    //   try {
+    //     emails.forEach(email => {
+    //       db.allowEditAccess(id, email)
+    //     })
+    //   } catch (e) {
+    //     res.sendStatus(500).send('Unauthorized')
+    //   }
+    // })
 
   return router
 }

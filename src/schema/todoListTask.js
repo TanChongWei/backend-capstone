@@ -1,8 +1,7 @@
 module.exports = class TodoListTask {
-  constructor(task, subtasks = []) {
+  constructor(task) {
     this.task = task
-    this.subtasks = subtasks
-    this.isCompleted = false
-    this.isDeleted = false
+    this.completed = false
+    this.deleted = false
   }
 }
