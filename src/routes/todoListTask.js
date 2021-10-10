@@ -3,34 +3,34 @@ const { UserFacingError } = require('../schema/error')
 const { SuccessResponse } = require('../schema/response')
 const TodoListTask = require('../schema/todoListTask')
 
-module.exports = (db) => {
+module.exports = (db, accessVerificationMiddleware) => {
   const router = express.Router()
 
   router
-    .post('/:id', async(req, res, next) => {
+    .post('/:todoListId', accessVerificationMiddleware, async(req, res, next) => {
       try {
-        const {id} = req.params
+        const {todoListId} = req.params
         const {task} = req.body
         const email = req.email
         const newTask = new TodoListTask(task)
-        const updatedList = await db.addTodoListTask(id, newTask)
+        const updatedList = await db.addTodoListTask(todoListId, newTask)
         if (updatedList) {
-          res.status(201).send(new SuccessResponse(201, email, updatedList))
+          res.status(201).redirect(`/todo/${todoListId}`)
         } else {
-          res.status(200).send(new SuccessResponse(200, email, `No such list found for user : ${email}`))
+          res.status(200).send(new SuccessResponse(200, email, [`No such list found for user : ${email}`]))
         }
       } catch (e){ 
         res.status(500).send(new UserFacingError(500, e))
       }
     })
-    .put('/:id/:taskId', async(req, res,next) => {
+    .put('/:todoListId/:taskId', accessVerificationMiddleware, async(req, res,next) => {
       try {
-        const {id, taskId} = req.params
+        const {todoListId, taskId} = req.params
         const email = req.email
         const {task} = req.body
-        const updatedList = db.updateTodoListTask(id, taskId, task)
+        const updatedList = db.updateTodoListTask(todoListId, taskId, task)
         if (updatedList) {
-          res.status(201).send(new SuccessResponse(201, email, updatedList))
+          res.status(201).redirect(`/todo/${todoListId}`)
         } else {
           res.status(200).send(new SuccessResponse(200, email, `No such list found for user : ${email}`))
         }
@@ -38,13 +38,13 @@ module.exports = (db) => {
         res.status(500).send(new UserFacingError(500, e))
       }
     })
-    .delete('/:id/:taskId', async(req, res, next) => {
+    .delete('/:todoListId/:taskId', accessVerificationMiddleware, async(req, res, next) => {
       try {
-        const {id, taskId} = req.params
+        const {todoListId, taskId} = req.params
         const email = req.email
-        const deleted = db.deleteTodoListTask(id, taskId)
+        const deleted = db.deleteTodoListTask(todoListId, taskId)
         if (deleted) {
-          res.status(201).send(new SuccessResponse(201, email, 'Task deleted from list'))
+          res.status(201).redirect(`/todo/${todoListId}`)
         } else {
           res.status(200).send(new SuccessResponse(200, email, 'No such task found'))
         }

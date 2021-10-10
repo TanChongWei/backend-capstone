@@ -9,7 +9,8 @@ module.exports = (pool) => {
         'SELECT * FROM list_tasks WHERE todo_list_id = $1 AND deleted = $2',
         [listId, false]
       )
-      return res.rows
+      console.log(res)
+      return res.rows.length ? res.rows : null
     } catch (e) {
       throw new DatabaseError(e.message)
     }
@@ -33,7 +34,7 @@ module.exports = (pool) => {
         'UPDATE list_tasks SET task = $3 WHERE todo_list_id = $1 AND task_id = $2 RETURNING *',
         [listId, taskId, task]
       )
-      return res.rows[0]
+      return res.rows.length ? res.rows[0] : null
     } catch (e) {
       throw new DatabaseError(e.message)
     }
@@ -42,10 +43,10 @@ module.exports = (pool) => {
   db.deleteTodoListTask = async (listId, taskId) => {
     try {
       const res = await pool.query(
-        'UPDATE list_tasks SET deleted = $3 WHERE todo_list_id = $1 AND task_id = $2',
+        'UPDATE list_tasks SET deleted = $3 WHERE todo_list_id = $1 AND task_id = $2 RETURNING *',
         [listId, taskId, true]
       )
-      return res
+      return res.rows.length ? res.rows[0] : null 
     } catch (e) {
       throw new DatabaseError(e.message)
     }

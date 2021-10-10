@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const { JwtVerificationError } = require('../schema/error')
+const { JwtVerificationError, permissionsVerificationError } = require('../schema/error')
 
 module.exports = (db) => {
   const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS)
@@ -37,6 +37,15 @@ module.exports = (db) => {
       return jwt.verify(token, JWT_SECRET).email
     } catch (e) {
       console.log(new JwtVerificationError(e.message))
+      return null
+    }
+  }
+
+  service.verifyListAccessPermissions = async (email, todoListId) => {
+    try {
+      return await db.verifyListAccess(email, todoListId)
+    } catch (e) {
+      console.log(new permissionsVerificationError(e))
       return null
     }
   }

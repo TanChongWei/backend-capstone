@@ -13,9 +13,9 @@ module.exports = (authMiddleware, authService, db) => {
   router.use('/', authRouter(authService))
 
   // All endpoints after this will be authenticated
-  router.use(authMiddleware)
-  router.use('/todo', todoListRouter(db))
-  router.use('/todo', todoListTaskRouter(db))
+  router.use(authMiddleware.verifyAuthStatus)
+  router.use('/todo', todoListRouter(db, authMiddleware.verifyListAccessPermissions))
+  router.use('/todo', todoListTaskRouter(db, authMiddleware.verifyListAccessPermissions))
 
   // Catch all other endpoints
   router.all('*', (req, res) => {

@@ -6,14 +6,17 @@ class ApplicationError extends Error {
   }
 }
 
-class JwtVerificationError {
+class baseVerificationError {
   constructor(message) {
     this.error = message
   }
 }
 
-class UserFacingError extends ApplicationError {}
+class JwtVerificationError extends baseVerificationError {}
+class permissionsVerificationError extends baseVerificationError {}
 
+class UserFacingError extends ApplicationError {}
+class NotFoundError extends ApplicationError {}
 class DatabaseError extends ApplicationError {
   constructor(message) {
     super()
@@ -21,11 +24,11 @@ class DatabaseError extends ApplicationError {
   }
 }
 
-class NotFoundError extends ApplicationError {}
 
 module.exports = {
   UserFacingError,
   DatabaseError,
   NotFoundError,
-  JwtVerificationError
+  JwtVerificationError,
+  permissionsVerificationError
 }

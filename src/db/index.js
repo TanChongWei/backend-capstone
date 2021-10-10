@@ -32,7 +32,8 @@ db.initialise = async() => {
   CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(100) NOT NULL,
-    password_hash VARCHAR(100) NOT NULL
+    password_hash VARCHAR(100) NOT NULL,
+    UNIQUE(email)
   )
   `)
 
@@ -58,8 +59,10 @@ db.initialise = async() => {
 
   await pool.query(`
   CREATE TABLE IF NOT EXISTS list_access (
+    email VARCHAR(100) NOT NULL,
     todo_list_id INT NOT NULL,
-    CONSTRAINT foreign_key_todo_list_id FOREIGN KEY(todo_list_id) REFERENCES todo_lists(list_id) ON DELETE CASCADE
+    CONSTRAINT foreign_key_todo_list_id FOREIGN KEY(todo_list_id) REFERENCES todo_lists(list_id) ON DELETE CASCADE,
+    CONSTRAINT foreign_key_user_id FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
   )
   `)
 }
@@ -68,6 +71,7 @@ db.resetDb = async () => {
   await pool.query(
     'DROP TABLE IF EXISTS list_Tasks, users, todo_lists, list_access'
   )
+  await db.initialise()
 }
 
 db.end = async () => {
