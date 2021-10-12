@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const AuthMiddleware = require('../../src/middleware/authMiddleware')
 const authService = {
   verifyToken: jest.fn(),
