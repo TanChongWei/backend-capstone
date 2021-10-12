@@ -4,7 +4,7 @@ const todoListRouter = require('./todoLists')
 const todoListTaskRouter = require('./todoListTask')
 const {NotFoundError} = require('../schema/error')
 
-module.exports = (authMiddleware, authService, db) => {
+module.exports = (authMiddleware, authService, todoListService) => {
   const router = express.Router()
 
   router.get('/', (req, res, next) => {
@@ -14,8 +14,8 @@ module.exports = (authMiddleware, authService, db) => {
 
   // All endpoints after this will be authenticated
   router.use(authMiddleware.verifyAuthStatus)
-  router.use('/todo', todoListRouter(db, authMiddleware.verifyListAccessPermissions))
-  router.use('/todo', todoListTaskRouter(db, authMiddleware.verifyListAccessPermissions))
+  router.use('/todo', todoListRouter(todoListService, authMiddleware.verifyListAccessPermissions))
+  router.use('/todo', todoListTaskRouter(todoListService, authMiddleware.verifyListAccessPermissions))
 
   // Catch all other endpoints
   router.all('*', (req, res) => {

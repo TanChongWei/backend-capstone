@@ -1,10 +1,8 @@
 const express = require('express')
-const TodoList = require('../schema/todolist')
-const TodoListTask = require('../schema/todoListTask')
 const { SuccessResponse } = require('../schema/response')
 const { UserFacingError } = require('../schema/error')
 
-module.exports = (db, accessVerificationMiddleware) => {
+module.exports = (service, accessVerificationMiddleware) => {
   const router = express.Router()
 
   router
@@ -13,16 +11,13 @@ module.exports = (db, accessVerificationMiddleware) => {
         const {todoListId} = req.params
         const email = req.email
         const {emails} = req.body
-        const listName = (await db.findListById(todoListId))[0].list_name
-        for (const e of emails) {
-          const access = await db.verifyListAccess(e, todoListId)
-          if (!access) {
-            await db.allowEditAccess(todoListId, e)
-          }
-        }
-        res.status(201).send(new SuccessResponse(201, email, 
-          [`Access for To-do List:'${listName}' granted for the following users: ${emails.join(', ')}`])
-        )
+
+        const listName = await service.grantListAccess(todoListId, emails)
+        return listName 
+          ? res.status(201)
+            .send(new SuccessResponse(201, email, [`Access for To-do List:'${listName}' granted for the following users: ${emails.join(', ')}`]))
+          : res.status(404)
+            .send(new UserFacingError(404, email, [`No such list found for user : ${email}`]))
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
       }
@@ -31,18 +26,8 @@ module.exports = (db, accessVerificationMiddleware) => {
       try {
         const email = req.email 
         const {listName, tasks} = req.body
-        const newList = new TodoList(listName, email, tasks)
-        const listId = (await db.InsertTodoList(newList)).list_id
-        const listTasks = tasks.map(task => new TodoListTask(task))
-
-        for (const task of listTasks) {
-          await db.addTodoListTask(listId, task)
-        }
-
-        newList.listId = listId
-        newList.listTasks = listTasks
-
-        res.status(201).send(new SuccessResponse(201, email, newList))
+        const newList = await service.createTodoList(listName, email, tasks)
+        return res.status(201).send(new SuccessResponse(201, email, newList))
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
       }
@@ -50,25 +35,11 @@ module.exports = (db, accessVerificationMiddleware) => {
     .get('/', async(req, res, next) => {
       try {
         const email = req.email
-        const todoListData = await db.findListsByEmail(email)
-
-        if (todoListData) {
-          const todoLists = todoListData.map(list => {
-            const newList = new TodoList(list.list_name, list.author, [])
-            newList.listId = list.list_id
-            return newList
-          })
-    
-          for (const list of todoLists) {
-            console.log(list.listId)
-            const tasks = await db.getTodoListTasks(list.listId)
-            list.listTasks = tasks.map(t => t.task)
-          }
-          res.status(200).send(new SuccessResponse(200, email, todoLists))
-        } else {
-          res.status(200).send(new SuccessResponse(200, email, [`No lists found for user : ${email}`]))
-        }
-  
+        const todoLists = await service.getTodoListsByEmail(email)
+        return todoLists 
+          ? res.status(200).send(new SuccessResponse(200, email, todoLists))
+          : res.status(404).send(new UserFacingError(404, email, [`No lists found for user : ${email}`]))
+        
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
       }
@@ -77,39 +48,26 @@ module.exports = (db, accessVerificationMiddleware) => {
       try {
         const {todoListId} = req.params
         const email = req.email
-        console.log('in here!')
-        const todoListData = await db.findListById(todoListId)
-
-        if (todoListData) {
-          const listTasks = todoListData.map(t => {
-            const task = new TodoListTask(t.task)
-            task.taskId = t.task_id
-            return task
-          })
-
-          const newList = new TodoList(todoListData[0].list_name, todoListData[0].author, listTasks)
-          newList.listId = todoListId
-          res.status(201).send(new SuccessResponse(201, email, newList))
-        } else {
-          res.status(200).send(new SuccessResponse(200, email, [`No such list found for user : ${email}`]))
-        }
+        const newList = await service.getTodoListById(todoListId)
+        return newList 
+          ? res.status(201).send(new SuccessResponse(201, email, newList))
+          : res.status(404).send(new UserFacingError(404, email, [`No such list found for user : ${email}`]))
 
       } catch (e) {
         console.log(e)
         res.status(500).send(new UserFacingError(500, e))
       }
     })
-    .put('/:todoListId', accessVerificationMiddleware, async(req, res,next) => {
+    .put('/:todoListId', accessVerificationMiddleware, async(req, res, next) => {
       try {
         const {todoListId} = req.params
         const email = req.email
         const {listName} = req.body
-        const updatedList = await db.findListByIdAndUpdate(todoListId, listName)
-        if (updatedList) {
-          res.status(200).send(new SuccessResponse(200, email, updatedList))
-        } else {
-          res.status(200).send(new SuccessResponse(200, email, [`No such list found for user : ${email}`]))
-        }
+        const updatedList = await service.findListByIdAndUpdate(todoListId, listName)
+        return updatedList 
+          ? res.status(200).send(new SuccessResponse(200, email, updatedList))
+          : res.status(404).send(new UserFacingError(404, email, [`No such list found for user : ${email}`]))
+        
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e ))
       }
@@ -118,12 +76,11 @@ module.exports = (db, accessVerificationMiddleware) => {
       try {
         const {todoListId} = req.params
         const email = req.email
-        const deletedList = await db.findListByIdAndDelete(todoListId)
-        if (deletedList) {
-          res.status(201).send(new SuccessResponse(201, email, [`Deleted Todo-list: ${deletedList.list_name} `]))
-        } else {
-          res.status(200).send(new SuccessResponse(200, email, [`No such list found for user : ${email}`]))
-        }
+        const deletedList = await service.findListByIdAndDelete(todoListId)
+        return deletedList 
+          ? res.status(201).send(new SuccessResponse(201, email, [`Deleted Todo-list: ${deletedList.list_name} `]))
+          : res.status(404).send(new UserFacingError(404, email, [`No such list found for user : ${email}`]))
+
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
       }

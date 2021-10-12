@@ -1,18 +1,18 @@
 const express = require('express')
 const { UserFacingError } = require('../schema/error')
+const { SuccessResponse } = require('../schema/response')
 
-function authRouter(service) {
+module.exports = (service) => {
   const router = express.Router()
 
   router.post('/register',  async(req, res, next) => {
     try {
       const {email, password} = req.body
       const token = await service.createUser(email, password)
-      if (token) {
-        res.cookie('token', token).status(201).send({token})
-      } else {
-        res.status(400).send(new UserFacingError(400,`Email ${email} already exists! Please use another email.`))
-      }
+      return token 
+        ? res.cookie('token', token).status(201).send(new SuccessResponse(201, email, {token}))
+        : res.status(400).send(new UserFacingError(400,`Email ${email} already exists! Please use another email.`))
+      
     } catch (e) {
       res.status(500).send(new UserFacingError(500, e))
     }
@@ -22,11 +22,10 @@ function authRouter(service) {
     try {
       const {email, password} = req.body
       const token = await service.loginUser(email, password)
-      if (token) {
-        res.cookie('token', token).send({token})
-      } else {
-        res.status(401).status(200).send(new UserFacingError(401, 'Invalid Email and/or Password combination'))
-      }
+      return token 
+        ? res.cookie('token', token).status(201).send(new SuccessResponse(201, email, {token}))
+        : res.status(401).status(200).send(new UserFacingError(401, 'Invalid Email and/or Password combination'))
+      
     } catch (e) {
       res.status(500).send(new UserFacingError(500, e))
     }
@@ -34,5 +33,3 @@ function authRouter(service) {
 
   return router
 }
-
-module.exports = authRouter

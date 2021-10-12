@@ -18,8 +18,8 @@ module.exports = (db) => {
       return null
     } else {
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
-      await db.insertUser(email, passwordHash)
-      return service.generateJSONToken(email)
+      const user = await db.insertUser(email, passwordHash)
+      return service.generateJSONToken(user.email)
     }
   }
 
@@ -27,7 +27,7 @@ module.exports = (db) => {
     const user = await db.findUserByEmail(email)
     if (user) {
       const isValid = await bcrypt.compare(password, user.password_hash)
-      return isValid ? service.generateJSONToken(email) : null
+      return isValid ? service.generateJSONToken(user.email) : null
     }
     return null
   }
@@ -43,10 +43,12 @@ module.exports = (db) => {
 
   service.verifyListAccessPermissions = async (email, todoListId) => {
     try {
-      return await db.verifyListAccess(email, todoListId)
+      const access = await db.verifyListAccess(email, todoListId)
+      if (access === null) return null
+      return access ? true : false
     } catch (e) {
       console.log(new permissionsVerificationError(e))
-      return null
+      return e
     }
   }
 

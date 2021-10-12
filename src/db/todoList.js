@@ -95,12 +95,18 @@ module.exports = (pool) => {
 
   db.verifyListAccess = async(email, id) => {
     try {
-      const res = await pool.query(
-        'SELECT * FROM list_access WHERE email = $1 AND todo_list_id = $2',
-        [email, id]
+      const list = await pool.query(
+        'SELECT * FROM todo_lists WHERE list_id = $1',
+        [id]
       )
-      console.log(res.rows)
-      return res.rows.length > 0
+      if (list.rows[0]) {
+        const res = await pool.query(
+          'SELECT * FROM list_access WHERE email = $1 AND todo_list_id = $2',
+          [email, id]
+        )
+        return res.rows.length > 0
+      } 
+      return null
     } catch (e) {
       throw new DatabaseError(e.message)
     }

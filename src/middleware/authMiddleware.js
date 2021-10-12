@@ -1,4 +1,4 @@
-const {UserFacingError} = require('../schema/error')
+const { UserFacingError, DatabaseError } = require('../schema/error')
 
 module.exports = (service) => {
   const middleware = {}
@@ -18,11 +18,21 @@ module.exports = (service) => {
   middleware.verifyListAccessPermissions = async (req, res, next) => {
     const email = req.email
     const {todoListId} = req.params
-    return (
-      await service.verifyListAccessPermissions(email, todoListId)
-        ? next()
-        : res.status(401).send(new UserFacingError(401, ['Unauthorised - Please request for list edit access.']))
-    )
+    try {
+      const access = await service.verifyListAccessPermissions(email, todoListId)
+      if (access === null) return (
+        res.status(404)
+          .send(new UserFacingError(404, [`No such list found of Id : ${todoListId}`]))
+      )
+      else if (access === false) return (
+        res.status(403)
+          .send(new UserFacingError(403, ['Unauthorised - Please request for list edit access.']))
+      )
+      next()
+    } catch (e) {
+      res.status(500)
+        .send(new UserFacingError(500, e))
+    }
   }
 
   return middleware

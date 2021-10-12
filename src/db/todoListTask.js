@@ -9,7 +9,6 @@ module.exports = (pool) => {
         'SELECT * FROM list_tasks WHERE todo_list_id = $1 AND deleted = $2',
         [listId, false]
       )
-      console.log(res)
       return res.rows.length ? res.rows : null
     } catch (e) {
       throw new DatabaseError(e.message)
