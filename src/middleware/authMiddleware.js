@@ -1,4 +1,4 @@
-const { UserFacingError, DatabaseError } = require('../schema/error')
+const { UserFacingError } = require('../schema/error')
 
 module.exports = (service) => {
   const middleware = {}

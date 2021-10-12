@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const TodoListTasksService = require('../../src/services/todoListTasks')
 const {db} = require('./mocks/mocks')
 	
