@@ -15,7 +15,7 @@ module.exports = (service, accessVerificationMiddleware) => {
         service.listAccessProducer({todoListId, emails})
         res.status(201)
           .send(new SuccessResponse(201, email, 
-            [`Access for To-do List is now being processed for the following users: ${emails.join(', ')}`]
+            [`Processing to-do list access for the following users: ${emails.join(', ')}`]
           ))
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
