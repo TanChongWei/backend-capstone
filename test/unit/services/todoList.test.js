@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-const TodoListService = require('../../src/services/todoList')
-const {email, db} = require('./mocks/mocks')
+const TodoListService = require('../../../src/services/todoList')
+const {email, db} = require('../mocks/mocks')
 	
 const todoListService = TodoListService(db)
 
@@ -12,15 +12,16 @@ describe('Granting list permissions', () => {
   })
   describe('Given a valid list Id and an emails with no access permissions', () => {
     it('Should return a valid list name and make 3 db calls to update list access', async () => {
-      db.verifyListAccess.mockResolvedValueOnce(false)
-      const listName = await todoListService.grantListAccess(1, ['user1@test.com'])
-      expect(db.allowEditAccess).toBeCalled()
+      db.verifyListAccess.mockResolvedValue(false)
+      const listName = await todoListService.grantListAccess(1, ['user1@test.com', 'user2@test.com', 'user3@test.com'])
+      expect(db.allowEditAccess).toBeCalledTimes(3)
       expect(listName).toEqual('test-list')
     })
   })
 
   describe('Given a valid list Id and an email that already has permissions', () => {
     it('Should return a valid list name without making a DB query', async () => {
+      db.verifyListAccess.mockResolvedValue(true)
       const listName = await todoListService.grantListAccess(1, [email])
       expect(db.allowEditAccess).not.toBeCalled()
       expect(listName).toEqual('test-list')

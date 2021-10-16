@@ -47,10 +47,10 @@ const db = {
       list_id: 1
     }
   }),
-  findListByIdAndUpdate: jest.fn(async () => {
+  findListByIdAndUpdate: jest.fn(async (id, updatedName) => {
     return {
-      list_id:1,
-      list_name:'updated-test-list',
+      list_id: 1,
+      list_name: updatedName,
       author: email,
       deleted: false
     }
@@ -71,11 +71,10 @@ const db = {
       list_name:'test-list',
     }
   }),
-  addTodoListTask: jest.fn(async (id) => {
-    console.log(id)
+  addTodoListTask: jest.fn(async (id, task) => {
     return {
       todo_list_id:1,
-      task:'test-task',
+      task:task,
       completed: false,
       deleted: false
     }
@@ -100,7 +99,7 @@ const db = {
     return {
       todo_list_id:1,
       task_id:1,
-      task:'updated-test-task-1',
+      task:task,
       completed: false,
       deleted: false
     }

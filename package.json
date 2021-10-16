@@ -6,7 +6,6 @@
       "!**/src/schema/*",
       "!**/src/db/*",
       "!**/src/*.js",
-      "!**/src/routes/*.js",
       "!**/node_modules/**"
     ]
   },
@@ -14,6 +13,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "amqplib": "^0.8.0",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
     "dotenv": "^10.0.0",

@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
-const { DatabaseError } = require('../../src/schema/error')
-const AuthService = require('../../src/services/auth')
-const {email, password, db} = require('./mocks/mocks')
+const { DatabaseError } = require('../../../src/schema/error')
+const AuthService = require('../../../src/services/auth')
+const {email, password, db} = require('../mocks/mocks')
 
 const authService = AuthService(db)
 

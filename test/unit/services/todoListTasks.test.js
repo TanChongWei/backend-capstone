@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-const TodoListTasksService = require('../../src/services/todoListTasks')
-const {db} = require('./mocks/mocks')
+const TodoListTasksService = require('../../../src/services/todoListTasks')
+const {db} = require('../mocks/mocks')
 	
 const todoListTasksService = TodoListTasksService(db)
 
@@ -18,6 +18,12 @@ describe('Creating new todo list tasks', () => {
         completed: false,
         deleted: false
       }
+      db.addTodoListTask.mockResolvedValueOnce({
+        todo_list_id:1,
+        task:'test-task',
+        completed: false,
+        deleted: false
+      })
       const newTask = await todoListTasksService.addTodoListTask(1, 'test-task')
       expect(db.addTodoListTask).toBeCalled()
       expect(newTask).toEqual(expected)

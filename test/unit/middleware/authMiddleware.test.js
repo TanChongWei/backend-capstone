@@ -1,12 +1,12 @@
 /* eslint-disable no-undef */
-const AuthMiddleware = require('../../src/middleware/authMiddleware')
+const AuthMiddleware = require('../../../src/middleware/authMiddleware')
 const authService = {
   verifyToken: jest.fn(),
   verifyListAccessPermissions: jest.fn(async() => {
     return true
   })
 }
-const { DatabaseError } = require('../../src/schema/error')
+const { DatabaseError } = require('../../../src/schema/error')
 const { getMockReq, getMockRes } = require('@jest-mock/express')
 
 const authMiddleware = AuthMiddleware(authService)

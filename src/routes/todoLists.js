@@ -12,12 +12,11 @@ module.exports = (service, accessVerificationMiddleware) => {
         const email = req.email
         const {emails} = req.body
 
-        const listName = await service.grantListAccess(todoListId, emails)
-        return listName 
-          ? res.status(201)
-            .send(new SuccessResponse(201, email, [`Access for To-do List:'${listName}' granted for the following users: ${emails.join(', ')}`]))
-          : res.status(404)
-            .send(new UserFacingError(404, email, [`No such list found for user : ${email}`]))
+        service.listAccessProducer({todoListId, emails})
+        res.status(201)
+          .send(new SuccessResponse(201, email, 
+            [`Access for To-do List is now being processed for the following users: ${emails.join(', ')}`]
+          ))
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
       }
