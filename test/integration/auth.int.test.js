@@ -5,6 +5,8 @@ const utils = require('./utils')
 const app = utils.app
 
 const email = 'test_user@gmail.com'
+const invalidEmail = 'invalid@gmail.com'
+const invalidPassword = 'wrongpassword'
 const password = 'test_password_123'
 
 beforeAll(async () => {
@@ -32,7 +34,7 @@ describe('POST /register for user registration', () => {
       .expect(201)
   })
 
-  it('Should return 400 if email already exists', () => {
+  it('Should return 400 if email already exists', async () => {
     return request(app)
       .post('/register')
       .send({email, password})
@@ -42,10 +44,31 @@ describe('POST /register for user registration', () => {
       })
   })
 
-  it('Should return 500 if an error occured', () => {
+  it('Should return 500 if an error occured', async () => {
     return request(app)
       .post('/register')
       .send('invalid request body')
       .expect(500)
+  })
+})
+
+describe('POST /login for user login', () => {
+  it('Should return 201 if the email and password are valid', async () => {
+    return request(app)
+      .post('/login')
+      .send({email, password})
+      .expect(201)
+  })
+  it('Should return 401 if an invalid email is passed', async () => {
+    return request(app)
+      .post('/login')
+      .send({email: invalidEmail, password})
+      .expect(401)
+  })
+  it('Should return 401 if an invalid password is passed', async () => {
+    return request(app)
+      .post('/login')
+      .send({email, password: invalidPassword})
+      .expect(401)
   })
 })
