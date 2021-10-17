@@ -4,14 +4,21 @@ const userDbHelpers = require('./users')
 const todoListDbHelpers = require('./todoList')
 const todoListTaskDbHelpers = require('./todoListTask')
 
-const pool = new Pool({
-  user: process.env.POSTGRES_USER,
-  host: process.env.POSTGRES_HOST,
-  database: process.env.DB,
-  password: process.env.POSTGRES_KEY,
-  port: process.env.POSTGRES_PORT,
-  connectionTimeoutMillis: process.env.CONNECTION_TIMEOUT_DURATION || 5000
-}) 
+let pool
+
+if (process.env.DATABASE_URL) {
+  pool = new Pool(process.env.DATABASE_URL)
+} else {
+  pool = new Pool({
+    user: process.env.POSTGRES_USER,
+    host: process.env.POSTGRES_HOST,
+    database: process.env.DB,
+    password: process.env.POSTGRES_KEY,
+    port: process.env.POSTGRES_PORT,
+    connectionTimeoutMillis: process.env.CONNECTION_TIMEOUT_DURATION || 5000
+  }) 
+}
+
 
 pool.connect((err, client, release) => {
   if (err) {
