@@ -68,7 +68,7 @@ module.exports = (pool) => {
   db.findListByIdAndDelete = async (id) => {
     try {
       const res = await pool.query(
-        'UPDATE todo_lists SET deleted = $3 WHERE list_id = $1 RETURNING *',
+        'UPDATE todo_lists SET deleted = $2 WHERE list_id = $1 RETURNING *',
         [id, true]
       )
       return res.rows.length ? res.rows[0] : null
