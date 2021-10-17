@@ -26,8 +26,8 @@ module.exports = (service, accessVerificationMiddleware) => {
         const {task} = req.body
         const updatedTask = await service.updateTodoListTask(todoListId, taskId, task)
         return updatedTask 
-          ? res.status(201).send(new SuccessResponse(201, email, [`list task updated - ${updatedTask}`]))
-          : res.status(404).send(new UserFacingError(404, email, `No such list found for user : ${email}`))
+          ? res.status(201).send(new SuccessResponse(201, email, [`list task updated - ${updatedTask.task}`]))
+          : res.status(404).send(new UserFacingError(404, email, `No such list/task found for user : ${email}`))
 
       } catch (e) {
         res.status(500).send(new UserFacingError(500, e))
@@ -37,9 +37,9 @@ module.exports = (service, accessVerificationMiddleware) => {
       try {
         const {todoListId, taskId} = req.params
         const email = req.email
-        const deletedTask = service.deleteTodoListTask(todoListId, taskId)
+        const deletedTask = await service.deleteTodoListTask(todoListId, taskId)
         return deletedTask 
-          ? res.status(201).send(new SuccessResponse(201, email, [`list deleted - ${deletedTask}`]))
+          ? res.status(201).send(new SuccessResponse(201, email, [`list deleted - ${deletedTask.task}`]))
           : res.status(404).send(new UserFacingError(404, email, 'No such task found'))
 
       } catch (e) {
