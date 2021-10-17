@@ -33,7 +33,7 @@
   "scripts": {
     "test": "jest --runInBand --coverage --detectOpenHandles",
     "lint": "eslint . --ext .js --fix",
-    "start": "nodemon src/server.js",
+    "start": "node src/server.js",
     "db:migrate": "node scripts/dbmigration.js",
     "db:reset": "node scripts/dbreset.js"
   },
