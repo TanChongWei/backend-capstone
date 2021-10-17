@@ -67,11 +67,25 @@ db.initialise = async() => {
   `)
 }
 
+db.clearUsersTable = async () => {
+  await pool.query('DELETE FROM users')
+  await pool.query('ALTER SEQUENCE users_user_id_seq RESTART')
+}
+
+db.clearTodoListsTable = async () => {
+  await pool.query('DELETE FROM todo_lists')
+  await pool.query('ALTER SEQUENCE todo_lists_list_id_seq RESTART')
+}
+
+db.clearListTasksTable = async () => {
+  await pool.query('DELETE FROM list_tasks')
+  await pool.query('ALTER SEQUENCE list_tasks_task_id_seq RESTART')
+}
+
 db.resetDb = async () => {
-  await pool.query(
-    'DROP TABLE IF EXISTS list_Tasks, users, todo_lists, list_access'
-  )
-  await db.initialise()
+  await db.clearUsersTable()
+  await db.clearTodoListsTable()
+  await db.clearListTasksTable()
 }
 
 db.end = async () => {

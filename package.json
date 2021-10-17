@@ -21,6 +21,7 @@
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
     "pg": "^8.7.1",
+    "supertest": "^6.1.6",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -30,7 +31,7 @@
     "jest": "^27.2.5"
   },
   "scripts": {
-    "test": "jest --runInBand --coverage",
+    "test": "jest --runInBand --coverage --detectOpenHandles",
     "lint": "eslint . --ext .js --fix",
     "start": "nodemon src/server.js",
     "db:migrate": "node scripts/dbmigration.js",
