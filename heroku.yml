@@ -1,5 +1,3 @@
-release:
-  command:
-    - npm run db:migrate
 run:
   web: npm start
+  worker: npm run worker

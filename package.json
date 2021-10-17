@@ -35,6 +35,7 @@
     "lint": "eslint . --ext .js --fix",
     "build": "node scripts/dbmigration.js",
     "start": "node src/server.js",
+    "worker": "node src/worker.js",
     "db:migrate": "node scripts/dbmigration.js",
     "db:reset": "node scripts/dbreset.js"
   },
