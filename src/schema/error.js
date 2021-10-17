@@ -1,8 +1,11 @@
 class ApplicationError extends Error {
-  constructor(code, response) {
+  constructor(code, response, data = null) {
     super()
     this.statusCode = code
     this.response = response
+    if (data) {
+      this.data = data
+    }
   }
 }
 
